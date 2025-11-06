@@ -1,6 +1,6 @@
 {
   "name": "Auto Centile Calculator",
-  "namespace": "ResearchFIRST\\AutoCentileModuleUK",
+  "namespace": "ResearchFIRST\\AutoCentileModule",
   "description": "Automatically calculates UK-WHO growth centiles and populates centile fields",
   "authors": [
     {
