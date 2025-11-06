@@ -160,35 +160,50 @@ try {
 /**
  * Format date to YYYY-MM-DD for API
  */
-function formatDate($date) {
+function formatDate($date, $format_hint = null) {
     if (empty($date)) {
         throw new Exception("Date cannot be empty");
     }
     
-    // REDCap dates come in various formats, try to parse
-    $formats = [
-        'Y-m-d',      // Standard: 2024-01-15
-        'd-m-Y',      // UK: 15-01-2024
-        'd/m/Y',      // UK with slashes: 15/01/2024
-        'm/d/Y',      // US: 01/15/2024
-        'Y-m-d H:i:s' // With time
-    ];
+    $date = trim($date);
+    
+    // If already in YYYY-MM-DD format, return as-is
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+        return $date;
+    }
+    
+    // Use format hint from REDCap if available
+    $formats = [];
+    
+    if ($format_hint === 'date_dmy') {
+        $formats = ['d-m-Y', 'd/m/Y', 'd.m.Y'];
+    } elseif ($format_hint === 'date_mdy') {
+        $formats = ['m-d-Y', 'm/d/Y'];
+    } elseif ($format_hint === 'date_ymd') {
+        $formats = ['Y-m-d', 'Y/m/d'];
+    } else {
+        // Try all formats if no hint provided
+        $formats = [
+            'Y-m-d', 'd-m-Y', 'm-d-Y',
+            'Y/m/d', 'd/m/Y', 'm/d/Y',
+            'd.m.Y',
+            'Y-m-d H:i:s', 'd-m-Y H:i:s', 'm-d-Y H:i:s'
+        ];
+    }
     
     foreach ($formats as $format) {
         $d = DateTime::createFromFormat($format, $date);
         if ($d !== false) {
-            return $d->format('Y-m-d');
+            $errors = DateTime::getLastErrors();
+            if ($errors['warning_count'] == 0 && $errors['error_count'] == 0) {
+                return $d->format('Y-m-d');
+            }
         }
     }
     
-    // Fallback: try strtotime
-    $timestamp = strtotime($date);
-    if ($timestamp !== false) {
-        return date('Y-m-d', $timestamp);
-    }
-    
-    throw new Exception("Invalid date format: $date");
+    throw new Exception("Invalid date format: $date (hint: $format_hint)");
 }
+
 
 /**
  * Call RCPCH Growth API
