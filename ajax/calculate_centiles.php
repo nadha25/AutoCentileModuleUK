@@ -118,10 +118,11 @@ try {
     $results = [];
     foreach ($measurements as $measurement) {
         $response = callRCPCHAPI($apiUrl, $measurement, $apiKey);
+        $method = $measurement['measurement_method'];
         
         if ($response['success']) {
             $data = $response['data'];
-            $method = $measurement['measurement_method'];
+          
             
             $results[$method] = [
                 'centile' => isset($data['measurement_calculated_values']['centile']) 
